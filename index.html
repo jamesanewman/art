@@ -1,8 +1,12 @@
 <html>
 <head>
-
+<script src="bower_components/ramda/dist/ramda.min.js"></script>
 </head>
 <body>
+
+<p>
+<button id="Greyscale">Greyscale</button>
+</p>
 
 <canvas id="Canvas" width="600" height="500">
 
@@ -16,124 +20,153 @@ var canvas = document.getElementById( "Canvas" ),
 
     //drawCircle( 200,200,10 );
 
-    drawImage( "http://www.wallpaperhi.com/thumbnails/detail/20140318/palm%20trees%20hdr%20photography%20beaches_www.wallpaperhi.com_20.jpg" )
+drawImage( "images/landscape1.jpg" )
 
-    function drawImage( src ){
-        var img = new Image();
-        img.src = src;
-        img.onload = function() {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            drawLine( 650,260, 50 );
-            drawHorizon( 50 );
-        };
+document.getElementById( 'Greyscale' ).addEventListener( 'click', extractGreyscale);
+
+var makeRGB = R.splitEvery(4),
+	greenToGrey = R.multiply(0.6),
+	redToGrey = R.multiply(0.3),
+	blueToGrey = R.multiply(0.11),
+	rgbToGrey = R.map( function( rgb ){
+		//console.log("RGB->",rgb)
+		var grey = (redToGrey(rgb[0]) + greenToGrey(rgb[1]) + blueToGrey(rgb[2]) ) / 3; 
+		return [ grey,grey,grey, /*alpha*/rgb[3] ];
+	})
+	rgbToGreyArray = R.compose( R.unnest, rgbToGrey, makeRGB );
+
+function extractGreyscale(){
+
+	var width=canvas.width,
+		height=canvas.height,
+		imgData = ctx.getImageData(0,0,width,height);
+
+	if(true){
+		greyArray = rgbToGreyArray( imgData.data );
+		console.log( greyArray );
+		var ID = new ImageData(Uint8ClampedArray.from(greyArray),width,height);
+		ctx.putImageData( ID ,0 ,0)
+	} else {
+		var row=0,rowHeight=5;
+		while( row<height ){
+			var rowData=ctx.getImageData(0,row,width,rowHeight);
+			var greyArray = rgbToGreyArray( rowData.data );
+			//console.log("Row=",rowData);
+			var ID = new ImageData(Uint8ClampedArray.from(greyArray),width,rowHeight);
+			ctx.putImageData( ID ,0 ,row)
+			row+=rowHeight;
+		}
+	}
+	//singlePoint()
+}
+
+function drawImage( src ){
+    var img = new Image();
+    img.src = src;
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+   		//singlePoint()
+ 
+    };
+}
+
+function twoPoint( ){
+    drawLine( 200,250, 50 );
+    drawLine( 400,250, 50 );
+    drawHorizon( 50 );
+}
+
+function singlePoint( ){
+    drawLine( 300,250, 50 );
+    drawHorizon( 50 );
+}
+
+var strokeColor = "#FFFFFF";
+
+function drawCircle( x,y,radius ){
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+    ctx.fillStyle = 'green';
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = strokeColor;
+    ctx.stroke();
+    ctx.closePath();
+}
+
+function drawHorizon( step ){
+
+    var currentY = 0;
+
+    ctx.beginPath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = strokeColor;
+    while( currentY < canvas.height ){
+
+        ctx.moveTo( 0, currentY );
+        ctx.lineTo( canvas.width, currentY );
+        currentY += step;
+
     }
-    //twoPoint()
-    //singlePoint();
+    ctx.stroke();
+    ctx.closePath();
 
-    function twoPoint( ){
-        drawLine( 200,250, 50 );
-        drawLine( 400,250, 50 );
-        drawHorizon( 50 );
-    }
+}
+function drawLine( x,y,step ){
 
-    function singlePoint( ){
-        drawLine( 300,250, 50 );
-        drawHorizon( 50 );
-    }
+    console.log("Line args = " , arguments );
 
-    function drawCircle( x,y,radius ){
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.fillStyle = 'green';
-        ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#003300';
-        ctx.stroke();
-        ctx.closePath();
-    }
+    ctx.beginPath();
 
-    function drawHorizon( step ){
+    // go round the edge of the canvas and draw
+    var currentX = x;
+    var xInc = 10;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = strokeColor;
 
-        var currentY = 0;
+    travelHorizontal( x,y, step );
+    travelVertical( x,y, step );
 
-        ctx.beginPath();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#000000';
-        while( currentY < canvas.height ){
+    ctx.stroke();
+    ctx.closePath();
 
-            ctx.moveTo( 0, currentY );
-            ctx.lineTo( canvas.width, currentY );
-            currentY += step;
+}
 
-        }
-        ctx.stroke();
-        ctx.closePath();
+function travelHorizontal( originX, originY, inc ){
+
+    var currentX = 0;
+    while( currentX < canvas.width ){
+
+        ctx.moveTo( originX,originY );
+        ctx.lineTo( currentX , canvas.height );
+
+        ctx.moveTo( originX,originY );
+        ctx.lineTo( currentX , 0 );
+
+        currentX += inc;
+        //console.log("Draw x " , currentX , " (", canvas.width, ")");
 
     }
-    function drawLine( x,y,step ){
+}
 
-        console.log("Line args = " , arguments );
 
-        ctx.beginPath();
+function travelVertical( originX, originY, inc ){
 
-        // go round the edge of the canvas and draw
-        var currentX = x;
-        var xInc = 10;
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = '#003300';
+    var currentY = 0;
+    while( currentY < canvas.height ){
 
-        travelHorizontal( x,y, step );
-        travelVertical( x,y, step );
-        // var travel = ( canvas.width - x );
-        // while( currentX < travel ){
+        ctx.moveTo( originX,originY );
+        ctx.lineTo( canvas.width , currentY );
 
-        //     ctx.moveTo( x,y );
-        //     ctx.lineTo( x + currentX , canvas.height );
-        //     currentX += xInc;
-        //     console.log("Draw x " , currentX , " (", canvas.width, ")");
-        // }
+        ctx.moveTo( originX,originY );
+        ctx.lineTo( 0 , currentY );
 
-        ctx.stroke();
-        ctx.closePath();
+        currentY += inc;
 
     }
-
-    function travelHorizontal( originX, originY, inc ){
-
-        var currentX = 0;
-        while( currentX < canvas.width ){
-
-            ctx.moveTo( originX,originY );
-            ctx.lineTo( currentX , canvas.height );
-
-            ctx.moveTo( originX,originY );
-            ctx.lineTo( currentX , 0 );
-
-            currentX += inc;
-            console.log("Draw x " , currentX , " (", canvas.width, ")");
-
-        }
-    }
-
-
-    function travelVertical( originX, originY, inc ){
-
-        var currentY = 0;
-        while( currentY < canvas.height ){
-
-            ctx.moveTo( originX,originY );
-            ctx.lineTo( canvas.width , currentY );
-
-            ctx.moveTo( originX,originY );
-            ctx.lineTo( 0 , currentY );
-
-            currentY += inc;
-            console.log("Draw y " , currentY , " (", canvas.width, ")");
-
-        }
-    }
+}
 
 </script>
 
