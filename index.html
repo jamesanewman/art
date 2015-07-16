@@ -1,0 +1,141 @@
+<html>
+<head>
+
+</head>
+<body>
+
+<canvas id="Canvas" width="600" height="500">
+
+
+
+
+<script>
+
+var canvas = document.getElementById( "Canvas" ),
+    ctx = canvas.getContext("2d");
+
+    //drawCircle( 200,200,10 );
+
+    drawImage( "http://www.wallpaperhi.com/thumbnails/detail/20140318/palm%20trees%20hdr%20photography%20beaches_www.wallpaperhi.com_20.jpg" )
+
+    function drawImage( src ){
+        var img = new Image();
+        img.src = src;
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            drawLine( 650,260, 50 );
+            drawHorizon( 50 );
+        };
+    }
+    //twoPoint()
+    //singlePoint();
+
+    function twoPoint( ){
+        drawLine( 200,250, 50 );
+        drawLine( 400,250, 50 );
+        drawHorizon( 50 );
+    }
+
+    function singlePoint( ){
+        drawLine( 300,250, 50 );
+        drawHorizon( 50 );
+    }
+
+    function drawCircle( x,y,radius ){
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'green';
+        ctx.fill();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#003300';
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    function drawHorizon( step ){
+
+        var currentY = 0;
+
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#000000';
+        while( currentY < canvas.height ){
+
+            ctx.moveTo( 0, currentY );
+            ctx.lineTo( canvas.width, currentY );
+            currentY += step;
+
+        }
+        ctx.stroke();
+        ctx.closePath();
+
+    }
+    function drawLine( x,y,step ){
+
+        console.log("Line args = " , arguments );
+
+        ctx.beginPath();
+
+        // go round the edge of the canvas and draw
+        var currentX = x;
+        var xInc = 10;
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#003300';
+
+        travelHorizontal( x,y, step );
+        travelVertical( x,y, step );
+        // var travel = ( canvas.width - x );
+        // while( currentX < travel ){
+
+        //     ctx.moveTo( x,y );
+        //     ctx.lineTo( x + currentX , canvas.height );
+        //     currentX += xInc;
+        //     console.log("Draw x " , currentX , " (", canvas.width, ")");
+        // }
+
+        ctx.stroke();
+        ctx.closePath();
+
+    }
+
+    function travelHorizontal( originX, originY, inc ){
+
+        var currentX = 0;
+        while( currentX < canvas.width ){
+
+            ctx.moveTo( originX,originY );
+            ctx.lineTo( currentX , canvas.height );
+
+            ctx.moveTo( originX,originY );
+            ctx.lineTo( currentX , 0 );
+
+            currentX += inc;
+            console.log("Draw x " , currentX , " (", canvas.width, ")");
+
+        }
+    }
+
+
+    function travelVertical( originX, originY, inc ){
+
+        var currentY = 0;
+        while( currentY < canvas.height ){
+
+            ctx.moveTo( originX,originY );
+            ctx.lineTo( canvas.width , currentY );
+
+            ctx.moveTo( originX,originY );
+            ctx.lineTo( 0 , currentY );
+
+            currentY += inc;
+            console.log("Draw y " , currentY , " (", canvas.width, ")");
+
+        }
+    }
+
+</script>
+
+</body>
+</html>
