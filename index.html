@@ -1,6 +1,11 @@
 <html>
 <head>
-<script src="bower_components/ramda/dist/ramda.min.js"></script>
+ <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">   <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+    <script data-main="app" src="bower_components/requirejs/require.js"></script>
+ 
 </head>
 <body>
 
@@ -12,163 +17,6 @@
 
 
 
-
-<script>
-
-var canvas = document.getElementById( "Canvas" ),
-    ctx = canvas.getContext("2d");
-
-    //drawCircle( 200,200,10 );
-
-drawImage( "images/landscape1.jpg" )
-
-document.getElementById( 'Greyscale' ).addEventListener( 'click', extractGreyscale);
-
-var makeRGB = R.splitEvery(4),
-	greenToGrey = R.multiply(0.6),
-	redToGrey = R.multiply(0.3),
-	blueToGrey = R.multiply(0.11),
-	rgbToGrey = R.map( function( rgb ){
-		//console.log("RGB->",rgb)
-		var grey = (redToGrey(rgb[0]) + greenToGrey(rgb[1]) + blueToGrey(rgb[2]) ) / 3; 
-		return [ grey,grey,grey, /*alpha*/rgb[3] ];
-	})
-	rgbToGreyArray = R.compose( R.unnest, rgbToGrey, makeRGB );
-
-function extractGreyscale(){
-
-	var width=canvas.width,
-		height=canvas.height,
-		imgData = ctx.getImageData(0,0,width,height);
-
-	if(true){
-		greyArray = rgbToGreyArray( imgData.data );
-		console.log( greyArray );
-		var ID = new ImageData(Uint8ClampedArray.from(greyArray),width,height);
-		ctx.putImageData( ID ,0 ,0)
-	} else {
-		var row=0,rowHeight=5;
-		while( row<height ){
-			var rowData=ctx.getImageData(0,row,width,rowHeight);
-			var greyArray = rgbToGreyArray( rowData.data );
-			//console.log("Row=",rowData);
-			var ID = new ImageData(Uint8ClampedArray.from(greyArray),width,rowHeight);
-			ctx.putImageData( ID ,0 ,row)
-			row+=rowHeight;
-		}
-	}
-	//singlePoint()
-}
-
-function drawImage( src ){
-    var img = new Image();
-    img.src = src;
-    img.onload = function() {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-   		//singlePoint()
- 
-    };
-}
-
-function twoPoint( ){
-    drawLine( 200,250, 50 );
-    drawLine( 400,250, 50 );
-    drawHorizon( 50 );
-}
-
-function singlePoint( ){
-    drawLine( 300,250, 50 );
-    drawHorizon( 50 );
-}
-
-var strokeColor = "#FFFFFF";
-
-function drawCircle( x,y,radius ){
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = 'green';
-    ctx.fill();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = strokeColor;
-    ctx.stroke();
-    ctx.closePath();
-}
-
-function drawHorizon( step ){
-
-    var currentY = 0;
-
-    ctx.beginPath();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = strokeColor;
-    while( currentY < canvas.height ){
-
-        ctx.moveTo( 0, currentY );
-        ctx.lineTo( canvas.width, currentY );
-        currentY += step;
-
-    }
-    ctx.stroke();
-    ctx.closePath();
-
-}
-function drawLine( x,y,step ){
-
-    console.log("Line args = " , arguments );
-
-    ctx.beginPath();
-
-    // go round the edge of the canvas and draw
-    var currentX = x;
-    var xInc = 10;
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = strokeColor;
-
-    travelHorizontal( x,y, step );
-    travelVertical( x,y, step );
-
-    ctx.stroke();
-    ctx.closePath();
-
-}
-
-function travelHorizontal( originX, originY, inc ){
-
-    var currentX = 0;
-    while( currentX < canvas.width ){
-
-        ctx.moveTo( originX,originY );
-        ctx.lineTo( currentX , canvas.height );
-
-        ctx.moveTo( originX,originY );
-        ctx.lineTo( currentX , 0 );
-
-        currentX += inc;
-        //console.log("Draw x " , currentX , " (", canvas.width, ")");
-
-    }
-}
-
-
-function travelVertical( originX, originY, inc ){
-
-    var currentY = 0;
-    while( currentY < canvas.height ){
-
-        ctx.moveTo( originX,originY );
-        ctx.lineTo( canvas.width , currentY );
-
-        ctx.moveTo( originX,originY );
-        ctx.lineTo( 0 , currentY );
-
-        currentY += inc;
-
-    }
-}
-
-</script>
 
 </body>
 </html>
